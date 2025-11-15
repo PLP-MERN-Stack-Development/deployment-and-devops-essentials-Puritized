@@ -1,4 +1,4 @@
-name: Deploy Vite App to GitHub Pages
+name: Deploy MERN Vite + Jekyll Docs
 
 on:
   push:
@@ -16,6 +16,25 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
+      # -------------------
+      # Build Jekyll Docs
+      # -------------------
+      - name: 💎 Setup Ruby for Jekyll
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1  # GitHub Pages recommended
+          bundler-cache: true
+
+      - name: 📁 Install Jekyll dependencies
+        run: bundle install
+
+      - name: 🏗 Build Jekyll site
+        run: bundle exec jekyll build -d jekyll_build
+        # Output will go into jekyll_build/
+
+      # -------------------
+      # Build Vite App
+      # -------------------
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -23,19 +42,34 @@ jobs:
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
 
-      - name: 📁 Install dependencies
+      - name: 📁 Install Vite dependencies
         working-directory: client
         run: npm ci
 
       - name: 🏗 Build Vite app
         working-directory: client
         run: npm run build
+        # Output goes to client/dist
 
+      # -------------------
+      # Merge both outputs
+      # -------------------
+      - name: 🗂 Combine Jekyll docs and Vite build
+        run: |
+          mkdir -p combined_deploy
+          # Copy Vite app to root
+          cp -r client/dist/* combined_deploy/
+          # Copy Jekyll docs into /docs
+          cp -r jekyll_build/* combined_deploy/docs/
+
+      # -------------------
+      # Deploy to GitHub Pages
+      # -------------------
       - name: 🚀 Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: client/dist
+          publish_dir: combined_deploy
           publish_branch: gh-pages
           keep_files: false
           user_name: "github-actions[bot]"

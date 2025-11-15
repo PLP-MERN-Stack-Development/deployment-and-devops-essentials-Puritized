@@ -1,0 +1,70 @@
+# ==========================
+# Jekyll Site Configuration
+# ==========================
+title: PLP MERN Stack Deployment & DevOps
+description: Documentation for MERN Stack Deployment & DevOps Essentials
+baseurl: "/deployment-and-devops-essentials-Puritized"  # Required for GitHub Pages subpath
+url: "https://plp-mern-stack-development.github.io"  # GitHub Pages root URL
+theme: jekyll-theme-primer
+
+# ==========================
+# Markdown & Syntax Highlighting
+# ==========================
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+# ==========================
+# Plugins
+# ==========================
+plugins:
+  - jekyll-github-metadata
+  - jekyll-seo-tag
+  - jekyll-paginate
+  - jekyll-relative-links
+  - jekyll-readme-index
+  - jekyll-default-layout
+  - jekyll-titles-from-headings
+
+# ==========================
+# Exclude files/folders from build
+# ==========================
+exclude:
+  - node_modules
+  - client/node_modules
+  - server/node_modules
+  - client/dist
+  - _site
+  - Gemfile
+  - Gemfile.lock
+  - package.json
+  - package-lock.json
+  - README.md
+  - .git
+  - .github
+  - .vscode
+  - scripts
+  - .env
+
+# ==========================
+# Pagination (optional)
+# ==========================
+paginate: 5
+paginate_path: "/page:num/"
+
+# ==========================
+# Defaults for docs
+# ==========================
+defaults:
+  -
+    scope:
+      path: "docs"
+    values:
+      layout: "default"
+      author: "Amos G."
+
+# ==========================
+# GitHub metadata
+# ==========================
+github:
+  is_project_page: true

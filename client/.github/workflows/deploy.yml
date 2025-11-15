@@ -2,12 +2,11 @@ name: Deploy Vite App to GitHub Pages
 
 on:
   push:
-    branches: [main]   # Deploy whenever main is updated
-
-  workflow_dispatch:   # Allow manual deploy
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
-  contents: write       # Needed for pushing to gh-pages
+  contents: write
 
 jobs:
   build:
@@ -21,14 +20,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: npm
+          cache: 'npm'
           cache-dependency-path: client/package-lock.json
 
       - name: 📁 Install dependencies
         working-directory: client
-        run: npm install
+        run: npm ci
 
-      - name: 🏗 Build project
+      - name: 🏗 Build Vite app
         working-directory: client
         run: npm run build
 
@@ -38,3 +37,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: client/dist
           publish_branch: gh-pages
+          keep_files: false
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"

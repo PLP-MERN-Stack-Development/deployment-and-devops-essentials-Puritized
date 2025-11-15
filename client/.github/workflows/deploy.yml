@@ -22,7 +22,7 @@ jobs:
       - name: 💎 Setup Ruby for Jekyll
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.1  # GitHub Pages recommended
+          ruby-version: 3.1
           bundler-cache: true
 
       - name: 📁 Install Jekyll dependencies
@@ -48,6 +48,8 @@ jobs:
 
       - name: 🏗 Build Vite app
         working-directory: client
+        env:
+          VITE_SOCKET_URL: https://deployment-and-devops-essentials-z5ys.onrender.com
         run: npm run build
         # Output goes to client/dist
 
@@ -57,7 +59,7 @@ jobs:
       - name: 🗂 Combine Jekyll docs and Vite build
         run: |
           mkdir -p combined_deploy
-          # Copy Vite app to root
+          # Copy Vite app to root of combined folder
           cp -r client/dist/* combined_deploy/
           # Copy Jekyll docs into /docs
           cp -r jekyll_build/* combined_deploy/docs/
@@ -69,7 +71,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: client/dist
+          publish_dir: combined_deploy   # ✅ use combined folder
           publish_branch: gh-pages
           keep_files: false
           user_name: "github-actions[bot]"

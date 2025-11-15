@@ -18,7 +18,7 @@ const Message = require('./models/message');
 const app = express();
 const server = http.createServer(app);
 
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+const CLIENT_URL = process.env.CLIENT_URL || 'https://plp-mern-stack-development.github.io/deployment-and-devops-essentials-Puritized/';
 
 const io = new Server(server, {
   cors: {

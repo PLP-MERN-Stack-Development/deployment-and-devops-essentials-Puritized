@@ -91,7 +91,7 @@ cd ../client
 npm install
 npm run dev
 
-**Usage**
+## Usage
 
 Open the app in the browser.
 
@@ -103,7 +103,7 @@ Type messages and press Send.
 
 Watch typing indicators for real-time typing feedback.
 
-**Environment Variables**
+## Environment Variables**
 
 MONGODB_URI — MongoDB connection string
 
@@ -111,7 +111,7 @@ PORT — Backend server port (default: 5000)
 
 VITE_SOCKET_URL — URL of the backend server for frontend Socket.io
 
-**Screenshots**
+## Screenshots
 <img width="1016" height="491" alt="image" src="https://github.com/user-attachments/assets/82d797ee-ec6e-474c-8cc5-c553758e84ce" />
 <img width="1341" height="590" alt="image" src="https://github.com/user-attachments/assets/0e4f4c33-82d6-479f-9367-6fffb56c24ac" />
 

@@ -2,11 +2,11 @@ name: Deploy Vite MERN Frontend
 
 on:
   push:
-    branches: [main]    # Deploy whenever main is updated
-  workflow_dispatch:    # Allow manual deploy
+    branches: [main]        # Deploy automatically on push
+  workflow_dispatch:        # Allow manual deploy
 
 permissions:
-  contents: write       # Needed to push to gh-pages
+  contents: write           # Needed to push to gh-pages
 
 jobs:
   deploy:
@@ -25,22 +25,27 @@ jobs:
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
 
-      # 3️⃣ Install frontend dependencies
+      # 3️⃣ Create production environment file
+      - name: 📝 Create .env.production
+        run: |
+          echo "VITE_SOCKET_URL=${{ secrets.RENDER_SERVER_URL }}" > client/.env.production
+
+      # 4️⃣ Install frontend dependencies
       - name: 📁 Install dependencies
         working-directory: client
         run: npm ci
 
-      # 4️⃣ Build Vite frontend
+      # 5️⃣ Build Vite frontend
       - name: 🏗 Build Vite app
         working-directory: client
         run: npm run build
 
-      # 5️⃣ Deploy to GitHub Pages
+      # 6️⃣ Deploy to GitHub Pages
       - name: 🚀 Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: client/dist   # ✅ publish the Vite build
+          publish_dir: client/dist
           publish_branch: gh-pages
           keep_files: false
           user_name: "github-actions[bot]"

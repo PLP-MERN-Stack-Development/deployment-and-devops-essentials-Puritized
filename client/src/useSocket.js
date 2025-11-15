@@ -3,7 +3,8 @@ import { io } from "socket.io-client";
 
 // ✅ Use backend URL from environment variable (Render or local)
 const SOCKET_URL =
-  import.meta.env.VITE_API_URL?.trim() || "http://localhost:5000";
+  import.meta.env.VITE_SOCKET_URL?.trim() ||
+  "https://deployment-and-devops-essentials-z5ys.onrender.com"; // replace with your server URL
 
 export const useSocket = () => {
   const [isConnected, setIsConnected] = useState(false);

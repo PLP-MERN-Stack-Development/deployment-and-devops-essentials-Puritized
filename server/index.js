@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-require('dotenv').config(); // Load environment variables from .env if present
+require('dotenv').config(); // Load environment variables
 const mongoose = require('mongoose');
 
 const app = express();
@@ -12,8 +12,8 @@ app.use(express.json());
 // CORS Configuration
 // ======================
 const allowedOrigins = [
-  'https://yourusername.github.io', // GitHub Pages frontend
-  'http://localhost:5173'           // local frontend dev (Vite)
+  'https://plp-mern-stack-development.github.io/deployment-and-devops-essentials-Puritized', // GitHub Pages frontend
+  'http://localhost:5173' // local frontend dev
 ];
 
 app.use(cors({
@@ -23,7 +23,8 @@ app.use(cors({
     } else {
       callback(new Error('Not allowed by CORS'));
     }
-  }
+  },
+  credentials: true
 }));
 
 // ======================
@@ -38,8 +39,8 @@ if (!mongoURI) {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch(err => console.error('❌ MongoDB connection error:', err));
 }
 
 // ======================
@@ -47,16 +48,20 @@ if (!mongoURI) {
 // ======================
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: allowedOrigins, methods: ["GET", "POST"] }
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
 });
 
 io.on('connection', (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
+  console.log(`🔌 Socket connected: ${socket.id}`);
 
   // Join event
   socket.on('join', ({ username }) => {
     socket.username = username || 'Anonymous';
-    console.log(`${socket.username} joined with id ${socket.id}`);
+    console.log(`🟢 ${socket.username} joined with id ${socket.id}`);
     socket.broadcast.emit('user-joined', { id: socket.id, username: socket.username });
   });
 
@@ -78,7 +83,7 @@ io.on('connection', (socket) => {
 
   // Disconnect
   socket.on('disconnect', (reason) => {
-    console.log(`Socket disconnected: ${socket.id} (${reason})`);
+    console.log(`❌ Socket disconnected: ${socket.id} (${reason})`);
     socket.broadcast.emit('user-left', { id: socket.id, username: socket.username });
   });
 });
@@ -92,4 +97,4 @@ app.get('/', (req, res) => res.send('Realtime Chat Server is running'));
 // Start server
 // ======================
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

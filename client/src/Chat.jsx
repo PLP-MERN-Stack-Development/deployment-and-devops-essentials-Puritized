@@ -1,12 +1,13 @@
 // Chat.jsx — Main Chat Component
 import React, { useEffect, useState } from "react";
 import ChatWindow from "./ChatWindow";
+import PrivateChatModal from "./PrivateChatModal";
 import { useSocket } from "../socket";
 
 /**
  * Chat.jsx
  * Controls user connection, message sending, and displays the chat interface.
- * Updated: Adds private messaging support with clean UI flow.
+ * Updated: Adds private messaging support with typing indicators.
  */
 export default function Chat() {
   const {
@@ -14,10 +15,12 @@ export default function Chat() {
     sendMessage,
     sendPrivateMessage,
     setTyping,
+    setPrivateTyping,
     messages,
     privateMessages,
     users,
     typingUsers,
+    privateTypingUsers,
     isConnected,
   } = useSocket();
 
@@ -25,6 +28,7 @@ export default function Chat() {
   const [isJoined, setIsJoined] = useState(false);
   const [typingLabel, setTypingLabel] = useState("");
   const [activeChat, setActiveChat] = useState("public"); // 'public' or userId
+  const [privateTarget, setPrivateTarget] = useState(null);
 
   // --- Handle join ---
   const handleJoin = () => {
@@ -41,10 +45,11 @@ export default function Chat() {
 
   // --- Handle typing status ---
   const handleTyping = (isTyping) => {
-    setTyping(isTyping);
+    if (activeChat === "public") setTyping(isTyping);
+    else setPrivateTyping(activeChat, isTyping);
   };
 
-  // --- Typing users label ---
+  // --- Typing users label for public chat ---
   useEffect(() => {
     if (typingUsers.length === 0) {
       setTypingLabel("");
@@ -129,9 +134,12 @@ export default function Chat() {
             users.map((user) => (
               <div
                 key={user.id}
-                onClick={() =>
-                  user.username !== username && setActiveChat(user.id)
-                }
+                onClick={() => {
+                  if (user.username !== username) {
+                    setPrivateTarget(user);
+                    setActiveChat(user.id);
+                  }
+                }}
                 className={`flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer transition-colors ${
                   user.username === username
                     ? "bg-blue-50 text-blue-700 cursor-default"
@@ -168,9 +176,22 @@ export default function Chat() {
           messages={currentChatMessages}
           onSend={handleSendMessage}
           onTyping={handleTyping}
-          typingLabel={activeChat === "public" ? typingLabel : ""}
+          typingLabel={
+            activeChat === "public" ? typingLabel : privateTypingUsers[activeChat] ? `${activeUser?.username} is typing...` : ""
+          }
         />
       </main>
+
+      {/* Private Chat Modal */}
+      <PrivateChatModal
+        target={privateTarget}
+        onClose={() => setPrivateTarget(null)}
+        onSend={(msg) => sendPrivateMessage(privateTarget.id, msg)}
+        messages={privateMessages[privateTarget?.id] || []}
+        username={username}
+        privateTypingUsers={privateTypingUsers}
+        setPrivateTyping={setPrivateTyping}
+      />
     </div>
   );
 }

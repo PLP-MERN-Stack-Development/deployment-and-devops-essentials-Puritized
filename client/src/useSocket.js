@@ -1,22 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-// ✅ Use backend URL from environment variable (Render or local)
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL?.trim() ||
-  "https://deployment-and-devops-essentials-z5ys.onrender.com"; // replace with your server URL
+  "https://deployment-and-devops-essentials-z5ys.onrender.com";
 
 export const useSocket = () => {
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState([]); // public messages
-  const [privateMessages, setPrivateMessages] = useState({}); // { userId: [msgs] }
+  const [messages, setMessages] = useState([]);
+  const [privateMessages, setPrivateMessages] = useState({});
   const [users, setUsers] = useState([]);
-  const [typingUsers, setTypingUsers] = useState([]);
+  const [typingUsers, setTypingUsers] = useState([]); // public chat
+  const [privateTypingUsers, setPrivateTypingUsers] = useState({}); // { userId: boolean }
   const socketRef = useRef(null);
 
-  // --- Connect user ---
   const connect = (username) => {
-    if (socketRef.current) return; // Prevent duplicate connections
+    if (socketRef.current) return;
 
     socketRef.current = io(SOCKET_URL, {
       transports: ["websocket"],
@@ -28,8 +27,8 @@ export const useSocket = () => {
 
     socketRef.current.on("connect", () => {
       setIsConnected(true);
-      socketRef.current.emit("user_join", username);
-      console.log(`✅ Connected to server as ${username}`);
+      socketRef.current.emit("join", { username });
+      console.log(`✅ Connected as ${username}`);
     });
 
     socketRef.current.on("disconnect", (reason) => {
@@ -41,54 +40,54 @@ export const useSocket = () => {
       console.error("❌ Connection error:", err.message);
     });
 
-    // --- Listen to server events ---
-    socketRef.current.on("user_list", (userList) => setUsers(userList));
-
+    // --- Public messages ---
     socketRef.current.on("receive_message", (msg) =>
       setMessages((prev) => [...prev, msg])
     );
 
-    socketRef.current.on("typing_users", (typingList) =>
-      setTypingUsers(typingList)
-    );
-
-    // --- Handle private messages ---
+    // --- Private messages ---
     socketRef.current.on("private_message", (msg) => {
+      const otherId = msg.senderId === socketRef.current.id ? msg.to : msg.senderId;
+
       setPrivateMessages((prev) => {
-        const senderId = msg.senderId;
         const updated = { ...prev };
-        if (!updated[senderId]) updated[senderId] = [];
-        updated[senderId].push(msg);
+        if (!updated[otherId]) updated[otherId] = [];
+        updated[otherId].push(msg);
         return updated;
       });
     });
 
-    // --- Load message history ---
+    // --- Public typing ---
+    socketRef.current.on("typing_users", (typingList) => setTypingUsers(typingList));
+
+    // --- Private typing ---
+    socketRef.current.on("private_typing", ({ userId, isTyping }) => {
+      setPrivateTypingUsers((prev) => ({ ...prev, [userId]: isTyping }));
+    });
+
+    // --- Fetch history ---
     fetch(`${SOCKET_URL}/api/messages`)
       .then((res) => res.json())
       .then((data) => setMessages(data))
       .catch((err) => console.error("Failed to fetch messages:", err));
   };
 
-  // --- Send public message ---
   const sendMessage = (message) => {
     if (socketRef.current && message.trim()) {
-      socketRef.current.emit("send_message", { message });
+      socketRef.current.emit("chat-message", message);
     }
   };
 
-  // --- Send private message ---
   const sendPrivateMessage = (toUserId, message) => {
     if (socketRef.current && toUserId && message.trim()) {
       socketRef.current.emit("private_message", { to: toUserId, message });
-      // Immediately add to local state for sender view
       const msgObj = {
-        id: Date.now(),
         sender: "You",
         senderId: socketRef.current.id,
         message,
         timestamp: new Date().toISOString(),
         isPrivate: true,
+        to: toUserId,
       };
       setPrivateMessages((prev) => {
         const updated = { ...prev };
@@ -99,12 +98,19 @@ export const useSocket = () => {
     }
   };
 
-  // --- Typing indicator ---
+  // --- Public typing ---
   const setTyping = (isTyping) => {
     if (socketRef.current) socketRef.current.emit("typing", isTyping);
   };
 
-  // --- Clean up on unmount ---
+  // --- Private typing ---
+  const setPrivateTyping = (userId, isTyping) => {
+    if (socketRef.current && userId) {
+      socketRef.current.emit("private_typing", { to: userId, isTyping });
+      setPrivateTypingUsers((prev) => ({ ...prev, [userId]: isTyping }));
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (socketRef.current) {
@@ -120,9 +126,11 @@ export const useSocket = () => {
     privateMessages,
     users,
     typingUsers,
+    privateTypingUsers,
     connect,
     sendMessage,
     sendPrivateMessage,
     setTyping,
+    setPrivateTyping,
   };
 };

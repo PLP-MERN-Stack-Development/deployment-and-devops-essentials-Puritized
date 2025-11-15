@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-// ✅ Environment-based socket URL
+// ✅ Use backend URL from environment variable (Render or local)
 const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL?.trim() || "http://localhost:5000";
+  import.meta.env.VITE_API_URL?.trim() || "http://localhost:5000";
 
 export const useSocket = () => {
   const [isConnected, setIsConnected] = useState(false);

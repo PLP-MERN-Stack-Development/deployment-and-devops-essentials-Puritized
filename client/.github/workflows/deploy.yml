@@ -1,0 +1,40 @@
+name: Deploy Vite App to GitHub Pages
+
+on:
+  push:
+    branches: [main]   # Deploy whenever main is updated
+
+  workflow_dispatch:   # Allow manual deploy
+
+permissions:
+  contents: write       # Needed for pushing to gh-pages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: 📁 Install dependencies
+        working-directory: client
+        run: npm install
+
+      - name: 🏗 Build project
+        working-directory: client
+        run: npm run build
+
+      - name: 🚀 Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: client/dist
+          publish_branch: gh-pages
